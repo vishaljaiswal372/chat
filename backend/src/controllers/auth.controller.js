@@ -1,3 +1,4 @@
+import bcrypt from "bcryptjs";
 import User from "../models/User.js";
 import jwt from "jsonwebtoken";
 
@@ -32,14 +33,14 @@ export const signup=async (req,res)=>{
 
         const token=jwt.sign({userId:newUser._id},process.env.JWT_SECRET_KEY,{
             expiresIn:"7d"
-        })
+        });
 
         res.cookie("jwt",token,{
             maxAge: 7 * 24 * 60 * 60 * 1000,
             httpOnly:true, // prevent xss attacks
             sameSite:"strict",
             secure:process.env.NODE_ENV==="production",
-        })
+        });
 
         res.status(201).json({success:true,user:newUser});
 
@@ -50,7 +51,32 @@ export const signup=async (req,res)=>{
 }
 
 export const login= async (req,res)=>{
-    res.send("login route");
+    try {
+        const {email,password}=req.body;
+        if(!email || !password) res.status(400).send({message:"all fields are required"});
+        const user=await User.findOne({email:email});
+        if(!user) res.status(401).send({message:"give the correct credentials"});
+        const ispasswordmatch=await bcrypt.compare(password,user.password);
+        if(ispasswordmatch)
+        {
+            const token=jwt.sign({userId:user._id},process.env.JWT_SECRET_KEY,{
+                expiresIn:"7d"
+            });
+
+            res.cookie("jwt",token,{
+                maxAge: 7 * 24 * 60 * 60 * 1000,
+                httpOnly:true, // prevent xss attacks
+                sameSite:"strict",
+                secure:process.env.NODE_ENV==="production",
+            });
+
+            res.status(201).json({success:true,user:user});
+        }
+        else res.status(401).send({message:"invalid password"});
+    } catch (error) {
+            console.log("Error in signup controller",error);
+            res.status(500).json({message:"internal server error"});
+    }
 }
 
 export const logout= async (req,res)=>{
