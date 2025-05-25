@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs";
 import User from "../models/User.js";
 import jwt from "jsonwebtoken";
+import { upsertStreamUser } from "../lib/stream.js";
 
 export const signup=async (req,res)=>{
     // console.log("Request Body: ", req.body);
@@ -30,6 +31,19 @@ export const signup=async (req,res)=>{
         const newUser=await User.create({email:email,password:password,fullName:fullName,profilePic:randomAvatar,});
 
         // TODO:create a  the user in stream as well
+        try 
+        {
+            await upsertStreamUser({
+            id:newUser._id.toString(),
+            name:newUser.fullName,
+            image:newUser.profilePic || "",
+            });
+            console.log(`Stream user created for ${newUser.fullName}`);
+        }catch(error)
+        {
+            console.log("error creating stream user",error);
+        }
+
 
         const token=jwt.sign({userId:newUser._id},process.env.JWT_SECRET_KEY,{
             expiresIn:"7d"
@@ -56,7 +70,10 @@ export const login= async (req,res)=>{
         if(!email || !password) res.status(400).send({message:"all fields are required"});
         const user=await User.findOne({email:email});
         if(!user) res.status(401).send({message:"give the correct credentials"});
-        const ispasswordmatch=await bcrypt.compare(password,user.password);
+
+        //const ispasswordmatch=await bcrypt.compare(password,user.password);
+
+        const ispasswordmatch=await user.matchPassword(password);
         if(ispasswordmatch)
         {
             const token=jwt.sign({userId:user._id},process.env.JWT_SECRET_KEY,{
@@ -80,5 +97,6 @@ export const login= async (req,res)=>{
 }
 
 export const logout= async (req,res)=>{
-    res.send("logout route");
+    res.clearCookie("jwt");
+    res.status(200).send({success:true,message:"logout successfully"})
 }
