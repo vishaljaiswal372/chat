@@ -67,9 +67,9 @@ export const signup=async (req,res)=>{
 export const login= async (req,res)=>{
     try {
         const {email,password}=req.body;
-        if(!email || !password) res.status(400).send({message:"all fields are required"});
+        if(!email || !password) res.status(400).json({message:"all fields are required"});
         const user=await User.findOne({email:email});
-        if(!user) res.status(401).send({message:"give the correct credentials"});
+        if(!user) res.status(401).json({message:"give the correct credentials"});
 
         //const ispasswordmatch=await bcrypt.compare(password,user.password);
 
@@ -89,7 +89,7 @@ export const login= async (req,res)=>{
 
             res.status(201).json({success:true,user:user});
         }
-        else res.status(401).send({message:"invalid password"});
+        else res.status(401).json({message:"invalid password"});
     } catch (error) {
             console.log("Error in signup controller",error);
             res.status(500).json({message:"internal server error"});
@@ -98,5 +98,47 @@ export const login= async (req,res)=>{
 
 export const logout= async (req,res)=>{
     res.clearCookie("jwt");
-    res.status(200).send({success:true,message:"logout successfully"})
+    res.status(200).json({success:true,message:"logout successfully"})
+}
+
+export async function onboard(req,res){
+    try {
+        const userId=req.user._id;
+        const {fullName,bio,nativeLanguage,learningLanguage,location}=req.body;
+        if(!fullName || !bio || !nativeLanguage || !learningLanguage || !location)
+        {
+            return res.status(401).json({message:"all fields are required",
+                missingFields:[
+                    !fullName && "fullName",
+                    !bio && "bio",
+                    !nativeLanguage && "nativeLanguage",
+                    !location && "location",
+                    !learningLanguage && "learningLanguage",
+                ].filter(Boolean),
+            });
+        }
+        const updatedUser=await User.findByIdAndUpdate(userId,{...req.body,isOnboarded:true,},{new:true});
+
+        if(!updatedUser) return res.status(404).json({message:"user not found"});
+
+        // todo:update the user info on stream
+
+        try 
+        {
+            await upsertStreamUser({
+            id:updatedUser._id.toString(),
+            name:updatedUser.fullName,
+            image:updatedUser.profilePic || "",
+            });
+            console.log(`Stream user created for ${updatedUser.fullName}`);
+        }catch(error)
+        {
+            console.log("error creating stream user",streamError.message);
+        }
+
+        res.status(200).json({success:true,user:updatedUser});
+    } catch (error) {
+        console.error("onboarding error",error);
+        res.status(500).json({message:"internal server error"});
+    }
 }
