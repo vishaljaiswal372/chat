@@ -36,7 +36,8 @@ const HomePage = () => {
     const outgoingIds=new Set();
     if(outgoingFriendReqs && outgoingFriendReqs.length>0){
       outgoingFriendReqs.forEach((req)=>{
-        outgoingIds.add(req.id);
+        console.log(req);
+        outgoingIds.add(req.recipient._id);
       });
     }
     setOutgoingRequestsIds(outgoingIds);
@@ -93,8 +94,7 @@ const HomePage = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {Array.isArray(recommendedUsers) && recommendedUsers.length > 0 ? (
-              recommendedUsers.map((user) => {
+            {recommendedUsers.map((user) => {
                 const hasRequestBeenSent = outgoingRequestsIds.has(user._id);
 
                 return (
@@ -156,15 +156,7 @@ const HomePage = () => {
                     </div>
                   </div>
                 );
-              })):(
-                <div className="card bg-base-200 p-6 text-center">
-                  <h3 className="font-semibold text-lg mb-2">No recommendations available</h3>
-                  <p className="text-base-content opacity-70">
-                    Check back later for new language partners!
-                  </p>
-                </div>
-              )
-            }
+              })}
             </div>
           )}
         </section>

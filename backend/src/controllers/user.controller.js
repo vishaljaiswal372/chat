@@ -7,13 +7,14 @@ export async function getRecommendedUsers(req,res)
         const currentUserId=req.user.id;
         const currentUser=req.user;
 
-        const recommendedUser= await User.find({
+        const recommendedUsers= await User.find({
             $and:[{_id:{$ne:currentUserId}},// exclude current user
-                {$id:{$nin:currentUser.friends}},//exclude current Users friends
+                {_id:{$nin:currentUser.friends}},//exclude current Users friends
                 {isOnboarded:true},
             ],
         });
-        res.status(200).json({recommendedUser});
+        console.log("Recommended users found:", recommendedUsers.length);
+        res.status(200).json({recommendedUsers});
 
     } catch (error) {
         console.error("error in getRecommendedUser controller",error.message);
@@ -45,7 +46,8 @@ export async function sendFriendRequest(req,res){
 
         if(!recipient) return res.status(400).json({message:"recipient not found"});
 
-        if(recipient.find.include(myId)) return res.status(400).json({message:"you are already friend with user"});
+        //if(recipient.find.include(myId)) return res.status(400).json({message:"you are already friend with user"});
+        if (recipient.friends.some(friendId => friendId.toString() === myId.toString())) return res.status(400).json({message:"you are already friend with user"});
 
         const existingRequest=await FriendRequest.findOne({
             $or:[{sender:myId,recipient:recipientId},{sender:recipientId,recipient:myId}],
