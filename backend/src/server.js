@@ -10,7 +10,7 @@ import {connectDB} from "./lib/db.js";
 import cookieParser from "cookie-parser";
 
 dotenv.config();
-const port=process.env.port;
+const port=process.env.port; 
 const app=express();
 
 app.use(cors({
@@ -24,7 +24,7 @@ app.use(cookieParser());
 
 app.use("/api/auth",authRoutes);
 app.use("/api/users",userRoutes);
-app.use("/app/chat",chatRoutes);
+app.use("/api/chat",chatRoutes);
 
 app.listen(port,()=>{
     console.log(`server is running on port ${port}`);

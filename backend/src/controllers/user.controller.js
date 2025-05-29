@@ -46,7 +46,6 @@ export async function sendFriendRequest(req,res){
 
         if(!recipient) return res.status(400).json({message:"recipient not found"});
 
-        //if(recipient.find.include(myId)) return res.status(400).json({message:"you are already friend with user"});
         if (recipient.friends.some(friendId => friendId.toString() === myId.toString())) return res.status(400).json({message:"you are already friend with user"});
 
         const existingRequest=await FriendRequest.findOne({
@@ -59,6 +58,7 @@ export async function sendFriendRequest(req,res){
             sender:myId,
             recipient:recipientId
         });
+
         res.status(201).json(friendRequest);
 
     } catch (error) {
@@ -73,19 +73,21 @@ export async function acceptFriendRequest(req,res)
         const {id:requestId}=req.params;
         const friendRequest=await FriendRequest.findById(requestId);
         if(!friendRequest) return res.status(404).json({message:"friend request not found"});
-        if(friendRequest.recipient.toString()!==re.user.id) return res.status(404).json({message:"you are not authorized to accept this request"});
+        if(friendRequest.recipient.toString()!==req.user.id) return res.status(404).json({message:"you are not authorized to accept this request"});
         friendRequest.status="accepted";
         await friendRequest.save();
 
         //add each user to others friend array
         //$addtoSet:adds element to an array only if they do not already exist 
         await User.findByIdAndUpdate(friendRequest.sender,{
-            $addtoset:{friends:friendRequest.recipient}
+            $addToSet:{friends:friendRequest.recipient}
         })
 
         await User.findByIdAndUpdate(friendRequest.recipient,{
-            $addtoset:{friends:friendRequest.sender}
+            $addToSet:{friends:friendRequest.sender}
         })
+
+        res.status(200).json({ message: "Friend request accepted successfully." });
     } catch (error) {
         console.error("error in acceptFriendRequest controller",error.message);
         res.status(500).json({message:"Internal server error"});
