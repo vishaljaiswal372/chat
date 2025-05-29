@@ -7,7 +7,7 @@ import ChatPage from "./pages/ChatPage.jsx";
 import CallPage from "./pages/CallPage.jsx"
 import OnboardingPage from "./pages/OnboardingPage.jsx";
 import NotificationPage from "./pages/NotificationPage.jsx";
-import toast,{Toaster} from "react-hot-toast";
+import {Toaster} from "react-hot-toast";
 import PageLoader from './components/PageLoader.jsx';
 import useAuthUser from './hooks/useAuthUser.js';
 import Layout from "./components/Layout.jsx"
@@ -26,7 +26,6 @@ const App = () => {
 
   return ( 
     <div  className="h-screen" data-theme={theme}>
-      {/* <button onClick={()=>toast.success("hello world!")} className='btn'>create a toast</button> */}
       <Routes>
         <Route path="/" element={isAuthenticated && isOnboarded ? (
           <Layout showSidebar={true}>
