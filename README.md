@@ -14,7 +14,6 @@
   <img src="https://img.shields.io/badge/Built%20With-Stream.io-blue" />
   <img src="https://img.shields.io/badge/Made%20with-React%20%2B%20Node.js-green" />
   <img src="https://img.shields.io/badge/Realtime-Chat%20%2F%20Video-orange" />
-  <img src="https://img.shields.io/github/license/Vishal-Jaiswal/streamchat" />
 </p>
 
 ---
